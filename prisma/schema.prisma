@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  GUEST
+  RESIDENT
+  ADMIN
+}
+
+enum WorkspaceType {
+  OPEN_SPACE
+  FIXED_DESK
+  MEETING_ROOM
+}
+
+enum Location {
+  PODIL
+  PECHERSK
+  OSOKORKY
+}
+
+enum WorkspaceStatus {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum BookingPlan {
+  HOUR
+  DAY
+  WEEK
+  MONTH
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(RESIDENT)
+  name         String
+  phone        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bookings     Booking[]
+}
+
+model Workspace {
+  id          String          @id @default(cuid())
+  number      String
+  name        String?
+  type        WorkspaceType
+  location    Location
+  status      WorkspaceStatus @default(AVAILABLE)
+  mapX        Float
+  mapY        Float
+  hourlyRate  Float?
+  dailyRate   Float?
+  weeklyRate  Float?
+  monthlyRate Float?
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  bookings    Booking[]
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  userId      String
+  workspaceId String
+  startDate   DateTime
+  endDate     DateTime
+  plan        BookingPlan
+  status      BookingStatus @default(PENDING)
+  totalAmount Float
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
